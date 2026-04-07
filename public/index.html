@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Norfolk Insider — Submit an Event</title>
+  <title>Norfolk Insider — Front Desk</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <style>
@@ -47,17 +47,17 @@
       border-bottom: 1px solid var(--border);
       background: var(--surface);
     }
-    .header h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--accent);
-      letter-spacing: -0.3px;
+    .header img {
+      max-width: 180px;
+      height: auto;
+      margin-bottom: 14px;
     }
     .header p {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-top: 4px;
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.6;
+      max-width: 400px;
+      margin: 0 auto;
     }
 
     /* Chat area */
@@ -183,8 +183,8 @@
 </head>
 <body>
   <div class="header">
-    <h1>The Norfolk Insider</h1>
-    <p>Got news, events, birthdays, or anything worth sharing? Tell us here!</p>
+    <img src="https://www.norfolkinsider.ca/wp-content/uploads/2026/04/Screenshot-2026-02-25-053350.png" alt="The Norfolk Insider">
+    <p>Welcome to the Norfolk Insider front desk. If you have something you want to be shared in the Norfolk Insider Newsletter, tell us about it here. Events, live music, birthdays, a bit of news....whatever you think Norfolk should know about!</p>
   </div>
 
   <div class="chat-area" id="chatArea"></div>
