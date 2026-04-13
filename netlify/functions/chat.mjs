@@ -1,4 +1,32 @@
 // netlify/functions/chat.mjs
+
+async function callClaude(apiKey, body, retries = 2) {
+  for (let i = 0; i <= retries; i++) {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.content) return data;
+    }
+
+    const errText = await res.text().catch(() => "unknown");
+    console.error(`Anthropic attempt ${i + 1} failed:`, errText);
+
+    if (i < retries) {
+      await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
+    }
+  }
+  return null;
+}
+
 export default async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("", {
@@ -117,29 +145,17 @@ Guidelines:
     ];
 
     // First API call
-    const apiRes = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1024,
-        system: systemPrompt,
-        tools,
-        messages,
-      }),
+    const data = await callClaude(ANTHROPIC_KEY, {
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1024,
+      system: systemPrompt,
+      tools,
+      messages,
     });
 
-    if (!apiRes.ok) {
-      const err = await apiRes.text();
-      console.error("Anthropic error:", err);
-      return json(502, { error: "AI service error" });
+    if (!data) {
+      return json(200, { reply: "I'm a little busy right now — could you try again in a moment?", tool_used: false });
     }
-
-    const data = await apiRes.json();
     const toolUse = data.content.find((b) => b.type === "tool_use");
 
     if (!toolUse) {
@@ -218,23 +234,21 @@ Guidelines:
       },
     ];
 
-    const followUpRes = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1024,
-        system: systemPrompt,
-        tools,
-        messages: followUpMessages,
-      }),
+    const followUpData = await callClaude(ANTHROPIC_KEY, {
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1024,
+      system: systemPrompt,
+      tools,
+      messages: followUpMessages,
     });
 
-    const followUpData = await followUpRes.json();
+    if (!followUpData) {
+      const fallback = isDuplicate
+        ? "Looks like that's already been submitted! Got anything else to share?"
+        : "Got it — your submission has been saved! Thanks for sharing. Got anything else?";
+      return json(200, { reply: fallback, tool_used: true, duplicate: isDuplicate });
+    }
+
     const finalText = followUpData.content
       .filter((b) => b.type === "text")
       .map((b) => b.text)
