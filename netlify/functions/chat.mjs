@@ -60,6 +60,7 @@ export default async (req) => {
       status: "fldxpNS00UMZGGDME",
       type: "fld8KpsPIGZsnE5vX",
       submitterName: "fldugVnM5Wt0pcIHz",
+      link: "fld34PQ0o0q4eDfog",
     };
 
     const systemPrompt = `You are the Norfolk Insider community tip bot. People from Norfolk County, Ontario share things with you — events, birthdays, anniversaries, local news, business updates, or anything they think their neighbours should know about.
@@ -79,6 +80,7 @@ What you need to collect:
 - **Date**: In YYYY-MM-DD format. For events, the event date. For birthdays/anniversaries, the date of the milestone. For news, today's date if no specific date applies. If they say "this Saturday", calculate from today (${new Date().toISOString().split("T")[0]}).
 - **Location**: The town in Norfolk County — Simcoe, Port Dover, Delhi, Waterford, Port Rowan, or Norfolk County (for county-wide items). Ask if unclear.
 - **Submitter Name**: Optionally ask "And can I put your name on this, or would you rather stay anonymous?" Don't push if they decline.
+- **Link**: If the user provides ANY URL or link (event page, poster, Facebook event, ticket link, etc.), ALWAYS preserve it exactly as given and pass it to the link parameter. Never drop or omit URLs. Do NOT include the URL in the blurb — put it in the link field only.
 
 If any critical detail is missing (what it is, when, where), ask conversationally. Don't interrogate — keep it friendly and brief.
 
@@ -139,6 +141,10 @@ Guidelines:
               type: "string",
               description: "Name of the person submitting (if provided)",
             },
+            link: {
+              type: "string",
+              description: "Any URL the user provided — event page, poster, Facebook event, ticket link, etc. Preserve exactly as given.",
+            },
           },
         },
       },
@@ -166,7 +172,7 @@ Guidelines:
       return json(200, { reply: text, tool_used: false });
     }
 
-    const { title, type, blurb, date, location, submitter_name } =
+    const { title, type, blurb, date, location, submitter_name, link } =
       toolUse.input;
 
     // Check duplicates: same title + same date (if date exists)
@@ -195,6 +201,7 @@ Guidelines:
       if (date) fields[FIELDS.date] = date;
       if (location) fields[FIELDS.location] = location;
       if (submitter_name) fields[FIELDS.submitterName] = submitter_name;
+      if (link) fields[FIELDS.link] = link;
 
       const createRes = await fetch(
         `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`,
