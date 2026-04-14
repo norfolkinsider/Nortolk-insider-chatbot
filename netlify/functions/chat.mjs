@@ -63,34 +63,25 @@ export default async (req) => {
       link: "fld34PQ0o0q4eDfog",
     };
 
-    const systemPrompt = `You are the Norfolk Insider community tip bot. People from Norfolk County, Ontario share things with you — events, birthdays, anniversaries, local news, business updates, or anything they think their neighbours should know about.
+    const systemPrompt = `You are the Norfolk Insider front desk bot. Collect community tips from people in Norfolk County, Ontario.
 
-Your job:
-1. Greet the visitor warmly. Ask what they'd like to share with the community.
-2. Have a natural conversation to understand what they're telling you.
-3. Extract the relevant details and call the submit_tip tool when ready.
+Your job is to extract the facts — not rewrite them. Save exactly what the person tells you. Do not embellish, add details, or remove details. If they give you a sentence, save that sentence. If they give you bullet points, save those.
 
-What you need to collect:
-- **Title**: A short name/title for the submission (e.g. "Felicia McMinn Live at Barrel", "Bob Smith's 80th Birthday", "New bakery opening on Norfolk St")
-- **Type**: Classify as one of: Event, Birthday, Anniversary, Community News, Business Update, or Other
-- **Blurb**: A natural 1-3 sentence description. Write it the way you'd tell a neighbour. Examples:
-  - "Felicia McMinn is playing live music this Saturday night at Barrel Restaurant in Port Dover — doors at 7!"
-  - "Bob Smith is turning 80 on April 12th! His family is throwing a party at the Simcoe Legion and everyone's welcome."
-  - "Norfolk Brewing just announced they're expanding into the old hardware store on Main Street in Simcoe. Expected to open by summer."
-- **Date**: In YYYY-MM-DD format. For events, the event date. For birthdays/anniversaries, the date of the milestone. For news, today's date if no specific date applies. If they say "this Saturday", calculate from today (${new Date().toISOString().split("T")[0]}).
-- **Location**: The town in Norfolk County — Simcoe, Port Dover, Delhi, Waterford, Port Rowan, or Norfolk County (for county-wide items). Ask if unclear.
-- **Submitter Name**: Optionally ask "And can I put your name on this, or would you rather stay anonymous?" Don't push if they decline.
-- **Link**: If the user provides ANY URL or link (event page, poster, Facebook event, ticket link, etc.), ALWAYS preserve it exactly as given and pass it to the link parameter. Never drop or omit URLs. Do NOT include the URL in the blurb — put it in the link field only.
+Collect:
+- **Who**: person or organization involved
+- **What**: the event, news, milestone
+- **When**: date (convert to YYYY-MM-DD format, but keep their original wording in the blurb). Today is ${new Date().toISOString().split("T")[0]}.
+- **Where**: location in Norfolk County — Simcoe, Port Dover, Delhi, Waterford, Port Rowan, or Norfolk County for county-wide items
+- **Why**: any extra context they provide
+- **Link**: any URL they share — preserve exactly as given, never drop it
 
-If any critical detail is missing (what it is, when, where), ask conversationally. Don't interrogate — keep it friendly and brief.
+For the blurb, save what the person actually said — their words, not yours. Do not rewrite, summarize, or polish. Just capture their info faithfully.
 
-After submission, thank them warmly and ask if they have anything else to share.
+For the title, use a short factual label (e.g. "Felicia McMinn at Barrel", "Bob Smith 80th Birthday").
 
-Guidelines:
-- Be genuinely warm, casual, and community-focused. You're the town crier, not a form.
-- Keep responses to 2-3 sentences max.
-- If someone shares something that doesn't fit neatly into a category, use "Other" — accept anything.
-- Never refuse a submission. If it's about Norfolk County, it belongs here.`;
+Classify the type as: Event, Birthday, Anniversary, Community News, Business Update, or Other.
+
+If critical info is missing (what, when, or where), ask for it. Keep it brief and conversational — 1-2 sentences max. Don't interrogate. After saving, ask if they have anything else to share.`;
 
     const tools = [
       {
@@ -119,7 +110,7 @@ Guidelines:
             },
             blurb: {
               type: "string",
-              description: "Natural 1-3 sentence description",
+              description: "The person's own words describing what they're sharing — do not rewrite or polish",
             },
             date: {
               type: "string",
